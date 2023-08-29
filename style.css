@@ -3,3 +3,14 @@
     background-color: burlywood;
     text-align:end;
 }
+
+.pitch {
+    color:beige;
+    text-align: center;
+    padding: 30px;
+    border: 1px solid black;
+}
+.pagetitle {
+    color:orange;
+    text-align: center;
+}
