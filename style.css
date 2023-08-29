@@ -5,7 +5,8 @@
 }
 
 .pitch {
-    color:beige;
+    color: orange;
+    background-color: crimson;
     text-align: center;
     padding: 30px;
     border: 1px solid black;
