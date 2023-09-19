@@ -1,0 +1,41 @@
+#header {
+    text-align: center;
+    align-self: center;
+}
+
+#showCat {
+    margin-left: 150px;
+    margin-top: 50px;
+    color: goldenrod;
+    background-color: aliceblue;
+    display: inline-block;
+}
+
+#showDog{
+    margin-left: 150px;
+    margin-top: 50px;
+    color: goldenrod;
+    background-color: aliceblue;
+    display: inline-block;
+}
+
+#dog {
+    scale: 1;
+    border: 5px solid black;
+    display: inline-block;
+}
+
+#cat {
+    scale: 1;
+    border: 5px solid black;
+    display: inline-block;
+}
+
+#rpsGame {
+    display: inline;
+}
+
+#rpsIntro {
+    margin-top: 50px;
+    align-self: center;
+}
