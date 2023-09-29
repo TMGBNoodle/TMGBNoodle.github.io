@@ -1,6 +1,7 @@
 #header {
     text-align: center;
     align-self: center;
+    font-family: 'Raleway', sans-serif;
 }
 
 #showCat {
@@ -9,6 +10,7 @@
     color: goldenrod;
     background-color: aliceblue;
     display: inline-block;
+    font-family: 'Raleway', sans-serif;
 }
 
 #showDog{
@@ -17,25 +19,30 @@
     color: goldenrod;
     background-color: aliceblue;
     display: inline-block;
+    font-family: 'Raleway', sans-serif;
 }
 
 #dog {
     scale: 1;
     border: 5px solid black;
     display: inline-block;
+    font-family: 'Raleway', sans-serif;
 }
 
 #cat {
     scale: 1;
     border: 5px solid black;
     display: inline-block;
+    font-family: 'Raleway', sans-serif;
 }
 
 #rpsGame {
     display: inline;
+    font-family: 'Raleway', sans-serif;
 }
 
 #rpsIntro {
     margin-top: 50px;
     align-self: center;
+    font-family: 'Raleway', sans-serif;
 }
