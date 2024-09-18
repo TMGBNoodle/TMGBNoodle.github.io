@@ -1,6 +1,6 @@
 .Main {
     color: black;
-    background-color: beige;
+    background-color: whitesmoke;
     text-align:end;
 }
 
@@ -21,8 +21,7 @@
 #pagetitle {
     color:rgb(0, 0, 0);
     font-weight:400;
-    text-align: center; 
-    font-family: 'Raleway', sans-serif;
+    font-family:fantasy;
 }
 #background {
     border-left: 10px;
