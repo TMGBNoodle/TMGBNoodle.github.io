@@ -21,7 +21,7 @@
 #pagetitle {
     color:rgb(0, 0, 0);
     font-weight:400;
-    font-family:fantasy;
+    font-family:'Courier New', Courier, monospace;
 }
 #background {
     border-left: 10px;
