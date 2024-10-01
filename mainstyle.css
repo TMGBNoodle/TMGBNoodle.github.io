@@ -1,57 +1,44 @@
 .Main {
     color: black;
     background-color: whitesmoke;
-    text-align:end;
+    text-align:center;
+    height:100cqmax;
 }
 
-#intro { 
-    color:rgb(0, 0, 0);
-    background-color: aliceblue;
-}
-#pitch {
-    color: rgb(0, 0, 0);
-    background-color: rgb(247, 198, 152);
-    text-align: center;
-    padding: 15px;
-    margin: 5px;
-    border: 1px solid black;
-    font-family: 'Raleway', sans-serif;
-    font-size: 32px;
+#topbar { 
+    background-color:#2376ba;
+    border-style:solid;
+    border-width: 0.1cm;
+    border-color: rgb(70, 70, 70);
 }
 #pagetitle {
     color:rgb(0, 0, 0);
-    font-weight:400;
-    font-family:'Courier New', Courier, monospace;
-}
-#background {
-    border-left: 10px;
-    border-right: 10px;
-}
-#center {
-    background-color: antiquewhite;
     align-items: center;
-}
-.showitem {
-    border: 5px solid rgb(13, 0, 131);
     text-align: center;
+    padding-top: 0.3cm;
+    font-weight:400;
+    font-family: "Old Standard TT", serif;
 }
-.showcase {
-    padding: 40px;
-}
-.iteminfo{
-    color: black;
-    font-family: 'Raleway', sans-serif;
+.column {
+    top:0;
+    bottom: 0;
+    background-color:antiquewhite;
+    border-style:solid;
+    border-color: lightblue;
+    width:75%;
+    height: 100%;
     align-self: center;
-}
-#statement {
-    margin: 100px;
-    background-color: rgb(197, 255, 236);
-    border: 5px solid black;
     text-align: center;
+}
+.left {
+    width:12.5%;
+    background-color: antiquewhite;
 }
 
-#disclaimer {
-    margin:50px;
-    background-color: blanchedalmond;
-    text-align: left;
+.right {
+    width:12.5%;
+    background-color: antiquewhite;
+}
+.row { 
+    height: 100%;
 }
