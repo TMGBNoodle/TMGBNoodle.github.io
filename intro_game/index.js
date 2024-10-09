@@ -122,6 +122,5 @@ function changeTargets() {
 timeButton.addEventListener("click", function() {
     moveEntities()
 });
-
 setInterval(moveEntities, 50)
 setInterval(changeTargets, 5000)
