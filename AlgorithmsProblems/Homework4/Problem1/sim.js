@@ -116,12 +116,18 @@ function generateGraph(n) {
 
 function BFS(active, unvisited, total){
     let depth = 0
+    let VCount = {}
     let dormant = []
     while(unvisited.length > 0){
+        depth += 1
         for (let i = 0; i < active.length; i++) {
             const element = active[i];
             const connected = element.getConnected()
-            active.Math
+            for(connect in connected){
+                active.push(connect)
+                let ind = unvisited.indexOf(connect)
+                unvisited.splice(ind, 1)
+            }
         }
     }
 

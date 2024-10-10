@@ -15,12 +15,19 @@ class creature {
         this.color = color
         this.size = (Math.random() * 15) + 10
         this.maxSize = this.size
-        this.moveSpeed = Math.random() * 30
-        this.target = {x: 0, y : 0}
+        this.moveSpeed = 25-this.size
+        this.target = {x: this.position.x, y : this.position.y}
+        this.top = this.position.y - this.size
+        this.bottom = this.position.y + this.size
+        this.left = this.position.x - this.size
+        this.right = this.position.x + this.size
         this.wait = 0
         this.waitThresh = Math.random() * 20 + 11
     }
 
+    getPosition() {
+        return this.position
+    }
     draw() {
         c.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`; 
         switch (this.type) {
@@ -48,17 +55,21 @@ class creature {
         const xMove = this.moveSpeed * xPer
         const yMove = this.moveSpeed * yPer
         const modifier = -1
-        let totalMove = 0
+        //let totalMove = 0
         if(run){
             modifier = 1
         }
         if(Math.abs(difX) > this.moveSpeed)
             this.position.x+=xMove*modifier
-            totalMove += Math.abs(xMove)
+            // totalMove += Math.abs(xMove)
+            this.left = this.position.x - this.size
+            this.right = this.position.x + this.size
         if(Math.abs(difY) > this.moveSpeed)
             this.position.y+=yMove*modifier
-            totalMove += Math.abs(yMove)
-        this.size -= totalMove
+            // totalMove += Math.abs(yMove)
+            this.top = this.position.y - this.size
+            this.bottom = this.position.y + this.size
+        //this.size -= totalMove
     }
     moveToTarget(run){
         this.move(this.target.x, this.target.y, run)
@@ -67,35 +78,90 @@ class creature {
         return this.size
     }
 
-    moveExhaustion(){
-        if(this.size> 10 & this.wait ){
-            this.moveToTarget
-        }
-        else{
-            this.wait += 1
-            this.size += this.wait
+    // moveExhaustion(){
+    //     if(this.size> 10 & this.wait ){
+    //         this.moveToTarget
+    //     }
+    //     else{
+    //         this.wait += 1
+    //         this.size += this.wait
+    //     }
+    // }
+    getTop() {
+        return this.top
+    }
+    getBottom(){
+        return this.bottom
+    }
+    getLeft(){
+        return this.left
+    }
+    getRight() {
+        return this.right
+    }
+}
+
+function checkQuadrantCollionsFromCreature(creature, quadrants) {
+    o1R = creature.getRight()
+    o1L = creature.getLeft()
+    o1T = creature.getTop()
+    o1B = creature.getBottom()
+    o2R = quadrants.x2
+    o2L = quadrants.x1
+    o2T = quadrants.y1
+    o2B = quadrants.y2
+    return !(o2L > o1R || o2R < o1L || o2T  > o1B || o2B < o1T)
+}
+const entities = []
+function initQuadrants(rows, columns) { 
+    for (let index = 0; index < columns; index++) {
+        for (let ind = 0; ind < rows; ind++) {
+            entities.push([{x1:ind * 100, x2: ind * 100 + 99, y1: index * 100, y2:index * 100 + 99}, new Array()])
         }
     }
 }
-const test = [0,1,2,3,4,5,6,7]
-console.log(test)
-test.splice(4, 1)
-console.log(test)
-const entities = []
-const targetX = 0
-const targetY = 0
-for (let i = 0; i < entityCount; i++) {
-    const posx = Math.random()*canvas.width - 10
-    const posy = Math.random()*canvas.height - 10
-    const r = Math.random() * 150
-    const g = Math.random() * 150
-    const b = Math.random() * 150
-    entities.push(new creature({x: posx, y: posy}, "circle", {r: r, g: g, b: b}))
-  }
-
-for(let i = 0; i <entities.length; i++){
-    entities[i].draw()
+initQuadrants(Math.floor(canvas.width/100), Math.floor(canvas.height/100))
+const quadColors = [
+    "yellow",
+    "green",
+    "blue",
+    "orange"
+]
+function drawQuadrants() {
+    for (let index = 0; index < entities.length; index++) {
+        const element = entities[index];
+        const bounds = element[0]
+        c.fillStyle = quadColors[index]
+        console.log([bounds.x1, bounds.y1, bounds.x2-bounds.x1, bounds.y2 - bounds.y1])
+        c.fillRect(bounds.x1, bounds.y1, bounds.x2-bounds.x1, bounds.y2 - bounds.y1)
+    }
 }
+drawQuadrants()
+
+function generateCreatures(entityCount, type) {
+    for (let i = 0; i < entityCount; i++) {
+        const posx = Math.random()*canvas.width - 10
+        const posy = Math.random()*canvas.height - 10
+        const r = Math.random() * 150
+        const g = Math.random() * 150
+        const b = Math.random() * 150
+        const newCreature = new creature({x: posx, y: posy}, type, {r: r, g: g, b: b})
+        for(let f = 0; f < entities.length; i++){
+            let quadrant = entities[f]
+            if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
+                quadrant[1].push(newCreature)
+            }
+        }
+    }
+    for(let i = 0; i <entities.length; i++){
+        creatures = entities[i][1]
+        for (let f = 0; f < creatures.length; f++) {
+            const element = creatures[f]
+            element.draw()
+        }
+    }
+}
+generateCreatures(100, "square")
 function moveEntities(){
     console.log("moving")
     c.fillStyle = "navy"
@@ -117,6 +183,18 @@ function changeTargets() {
         const posy = Math.random()*canvas.height - 10
         entities[i].setTarget({x:posx,y:posy})
     }
+}
+
+function checkCollisionCreature(o1, o2) {
+    o1R = o1.getRight()
+    o1L = o1.getLeft()
+    o1T = o1.getTop()
+    o1B = o1.getBottom()
+    o2R = o2.getRight()
+    o2L = o2.getLeft()
+    o2T = o2.getTop()
+    o2B = o2.getBottom()
+    return !(o2L > o1R || o2R < o1L || o2T  > o1B || o2B < o1T)
 }
 
 timeButton.addEventListener("click", function() {
