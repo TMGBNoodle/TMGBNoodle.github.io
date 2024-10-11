@@ -147,17 +147,17 @@ function generateCreatures(entityCount, type) {
         const b = Math.random() * 150
         const newCreature = new creature({x: posx, y: posy}, type, {r: r, g: g, b: b})
         let count = 0
-        for(let f = 0; f < entities.length; i++){
+        for(let f = 0; f < entities.length; f++){
             count = count +1
-            // let quadrant = entities[f]
-            // newCreature.draw()
-            // if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
-            //     count += 1
-            //     quadrant[1].push(newCreature)
-            //     if(count >= 4){
-            //         break
-            //     }
-            // }
+            let quadrant = entities[f]
+            newCreature.draw()
+            if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
+                count += 1
+                quadrant[1].push(newCreature)
+                if(count >= 4){
+                    break
+                }
+            }
         }
     }
     for(let i = 0; i <entities.length; i++){
