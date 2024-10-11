@@ -78,6 +78,10 @@ class creature {
         return this.size
     }
 
+    getBounds() {
+        return {top : this.top, bottom : this.bottom, left : this.left, right : this.right}
+    }
+
     // moveExhaustion(){
     //     if(this.size> 10 & this.wait ){
     //         this.moveToTarget
@@ -102,15 +106,12 @@ class creature {
 }
 
 function checkQuadrantCollionsFromCreature(creature, quadrants) {
-    o1R = creature.getRight()
-    o1L = creature.getLeft()
-    o1T = creature.getTop()
-    o1B = creature.getBottom()
+    o1Bounds = creature.getBounds()
     o2R = quadrants.x2
     o2L = quadrants.x1
     o2T = quadrants.y1
     o2B = quadrants.y2
-    return !(o2L > o1R || o2R < o1L || o2T  > o1B || o2B < o1T)
+    return !(o2L > o1Bounds.right || o2R < o1Bounds.left || o2T  > o1Bounds.bottom || o2B < o1Bounds.top)
 }
 const entities = []
 function initQuadrants(rows, columns) { 
@@ -132,12 +133,11 @@ function drawQuadrants() {
         const element = entities[index];
         const bounds = element[0]
         c.fillStyle = quadColors[index]
-        console.log([bounds.x1, bounds.y1, bounds.x2-bounds.x1, bounds.y2 - bounds.y1])
         c.fillRect(bounds.x1, bounds.y1, bounds.x2-bounds.x1, bounds.y2 - bounds.y1)
     }
 }
 drawQuadrants()
-
+console.log(entities.length)
 function generateCreatures(entityCount, type) {
     for (let i = 0; i < entityCount; i++) {
         const posx = Math.random()*canvas.width - 10
@@ -146,11 +146,18 @@ function generateCreatures(entityCount, type) {
         const g = Math.random() * 150
         const b = Math.random() * 150
         const newCreature = new creature({x: posx, y: posy}, type, {r: r, g: g, b: b})
+        let count = 0
         for(let f = 0; f < entities.length; i++){
-            let quadrant = entities[f]
-            if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
-                quadrant[1].push(newCreature)
-            }
+            count = count +1
+            // let quadrant = entities[f]
+            // newCreature.draw()
+            // if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
+            //     count += 1
+            //     quadrant[1].push(newCreature)
+            //     if(count >= 4){
+            //         break
+            //     }
+            // }
         }
     }
     for(let i = 0; i <entities.length; i++){
@@ -167,13 +174,8 @@ function moveEntities(){
     c.fillStyle = "navy"
     c.fillRect(0,0,canvas.width,canvas.height)
     for(let i = 0; i <entities.length; i++){
-        if(entities[i].getSize() < 0){
-            entities.splice(i-1, 1)
-        }
-        else{ 
         entities[i].moveToTarget(false)
         entities[i].draw()
-        }
     }
 };
 
