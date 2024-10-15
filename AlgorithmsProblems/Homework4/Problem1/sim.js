@@ -37,7 +37,7 @@ class vertex {
         for(i = 0; i < this.connected.length; i++) {
             let vert = this.connected[i]
             let oPos = vert.getPos()
-            c.lineWidth = 0.1
+            c.lineWidth = 0.5
             c.beginPath()
             c.moveTo(this.position.x, this.position.y)
             c.lineTo(oPos.x, oPos.y)

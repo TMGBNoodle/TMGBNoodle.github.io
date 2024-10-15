@@ -7,7 +7,8 @@ const timeButton = document.getElementById('moveTime');
 const c = canvas.getContext("2d");
 canvas.height = 512;
 canvas.width = 1024;
-const entityCount = 100;
+const entityCount = 50;
+const quadrantSize = 50;
 class creature {
     constructor(position, type, color) {
         this.position = position
@@ -17,12 +18,14 @@ class creature {
         this.maxSize = this.size
         this.moveSpeed = 25-this.size
         this.target = {x: this.position.x, y : this.position.y}
-        this.top = this.position.y - this.size
-        this.bottom = this.position.y + this.size
-        this.left = this.position.x - this.size
-        this.right = this.position.x + this.size
-        this.wait = 0
-        this.waitThresh = Math.random() * 20 + 11
+        this.top = this.position.y - this.size/2
+        this.bottom = this.position.y + 1.5 * (this.size)
+        this.left = this.position.x - this.size/2
+        this.right = this.position.x + 1.5 * (this.size)
+        this.lastMoveX = 0
+        this.lastMoveY = 0
+        // this.wait = 0
+        // this.waitThresh = Math.random() * 20 + 11
     }
 
     getPosition() {
@@ -32,11 +35,27 @@ class creature {
         c.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`; 
         switch (this.type) {
             case "square":
-                c.fillRect(this.position.x, this.position.y, this.size, this.size)
-            case "circle":
+                c.fillRect(this.position.x, this.position.y, this.size/2, this.size/2)
+                c.lineWidth = 0.8
                 c.beginPath()
-                c.arc(this.position.x + 50, this.position.y + 50, this.size, 0, 2 * Math.PI)
+                c.moveTo(this.position.x + this.size, this.position.y + this.size)
+                c.lineTo(this.target.x, this.target.y)
+                c.stroke()
+                c.closePath()
+            case "circle":
+                c.lineWidth = 0.8
+                c.beginPath()
+                c.moveTo(this.left, this.top)
+                c.lineTo(this.right, this.top)
+                c.lineTo(this.right, this.bottom)
+                c.lineTo(this.left, this.bottom)
+                c.lineTo(this.left, this.top)
+                c.stroke()
+                c.closePath()
+                c.beginPath()
+                c.arc(this.position.x + this.size/2, this.position.y + this.size/2, this.size, 0, 2 * Math.PI)
                 c.fill()
+                c.closePath()
         }
     }
     eat() {
@@ -59,16 +78,22 @@ class creature {
         if(run){
             modifier = 1
         }
-        if(Math.abs(difX) > this.moveSpeed)
-            this.position.x+=xMove*modifier
+        if(Math.abs(difX) > this.moveSpeed) {
+            let toMove = xMove*modifier
+            this.position.x+=toMove
+            this.lastMoveX = toMove
             // totalMove += Math.abs(xMove)
-            this.left = this.position.x - this.size
-            this.right = this.position.x + this.size
-        if(Math.abs(difY) > this.moveSpeed)
-            this.position.y+=yMove*modifier
+            this.left = this.position.x - this.size/2
+            this.right = this.position.x + 1.5 * (this.size)
+        }
+        if(Math.abs(difY) > this.moveSpeed) {
+            let toMove = yMove*modifier
+            this.position.y+= toMove
+            this.lastMoveY = toMove
             // totalMove += Math.abs(yMove)
-            this.top = this.position.y - this.size
-            this.bottom = this.position.y + this.size
+            this.top = this.position.y - this.size/2
+            this.bottom = this.position.y + 1.5 * (this.size)
+        }
         //this.size -= totalMove
     }
     moveToTarget(run){
@@ -104,24 +129,27 @@ class creature {
         return this.right
     }
 }
-
 function checkQuadrantCollionsFromCreature(creature, quadrants) {
-    o1Bounds = creature.getBounds()
+    o1B = creature.getBounds()
     o2R = quadrants.x2
     o2L = quadrants.x1
     o2T = quadrants.y1
     o2B = quadrants.y2
-    return !(o2L > o1Bounds.right || o2R < o1Bounds.left || o2T  > o1Bounds.bottom || o2B < o1Bounds.top)
+    return !(o2L > o1B.right || o2R < o1B.left || o2T  > o1B.bottom || o2B < o1B.top)
 }
 const entities = []
+
+const allEntities = []
 function initQuadrants(rows, columns) { 
     for (let index = 0; index < columns; index++) {
         for (let ind = 0; ind < rows; ind++) {
-            entities.push([{x1:ind * 100, x2: ind * 100 + 99, y1: index * 100, y2:index * 100 + 99}, new Array()])
+            entities.push([{x1:ind * quadrantSize, x2: ind * quadrantSize + quadrantSize-1, y1: index * quadrantSize, y2:index * quadrantSize + quadrantSize-1}, new Array()])
         }
     }
 }
-initQuadrants(Math.floor(canvas.width/100), Math.floor(canvas.height/100))
+const lateralQuadrantCount = Math.floor(canvas.width/quadrantSize)
+const verticalQuadrantCount = Math.floor(canvas.height/quadrantSize)
+initQuadrants(lateralQuadrantCount, verticalQuadrantCount)
 const quadColors = [
     "yellow",
     "green",
@@ -132,12 +160,25 @@ function drawQuadrants() {
     for (let index = 0; index < entities.length; index++) {
         const element = entities[index];
         const bounds = element[0]
-        c.fillStyle = quadColors[index]
+        if(element[1].length > 0) {
+            c.fillStyle = quadColors[1]
+        } else
+            c.fillStyle = quadColors[0]
+            
         c.fillRect(bounds.x1, bounds.y1, bounds.x2-bounds.x1, bounds.y2 - bounds.y1)
+        c.fillText(`${index}`,bounds.x1+50, bounds.y1+50);
+        c.lineWidth = 0.8
+        c.beginPath()
+        c.moveTo(bounds.x1, bounds.y1)
+        c.lineTo(bounds.x2, bounds.y1)
+        c.lineTo(bounds.x2, bounds.y2)
+        c.lineTo(bounds.x1, bounds.y2)
+        c.lineTo(bounds.x1, bounds.y1)
+        c.stroke()
+        c.closePath()
     }
 }
 drawQuadrants()
-console.log(entities.length)
 function generateCreatures(entityCount, type) {
     for (let i = 0; i < entityCount; i++) {
         const posx = Math.random()*canvas.width - 10
@@ -146,44 +187,62 @@ function generateCreatures(entityCount, type) {
         const g = Math.random() * 150
         const b = Math.random() * 150
         const newCreature = new creature({x: posx, y: posy}, type, {r: r, g: g, b: b})
+        allEntities.push(newCreature)
         let count = 0
         for(let f = 0; f < entities.length; f++){
             count = count +1
             let quadrant = entities[f]
-            newCreature.draw()
             if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
                 count += 1
                 quadrant[1].push(newCreature)
-                if(count >= 4){
-                    break
-                }
             }
         }
     }
-    for(let i = 0; i <entities.length; i++){
-        creatures = entities[i][1]
-        for (let f = 0; f < creatures.length; f++) {
-            const element = creatures[f]
-            element.draw()
-        }
+    for(let i = 0; i <allEntities.length; i++){
+        const element = allEntities[i]
+        element.draw()
     }
 }
-generateCreatures(100, "square")
+
+generateCreatures(50, "circle")
+function clearQuadrants() {
+    for (let index = 0; index < entities.length; index++) {
+        const element = entities[index];
+        element[1] = []
+    }
+}
 function moveEntities(){
     console.log("moving")
-    c.fillStyle = "navy"
+    c.fillStyle = "white"
     c.fillRect(0,0,canvas.width,canvas.height)
-    for(let i = 0; i <entities.length; i++){
-        entities[i].moveToTarget(false)
-        entities[i].draw()
+    clearQuadrants()
+    for(let i = 0; i < allEntities.length; i++){
+        const entity = allEntities[i]
+        entity.moveToTarget(false)
+    }
+    for (let i = 0; i < allEntities.length; i++) {
+        newCreature = allEntities[i]
+        for(let f = 0; f < entities.length; f++){
+            let quadrant = entities[f]
+            if(checkQuadrantCollionsFromCreature(newCreature, quadrant[0])){
+                quadrant[1].push(newCreature)
+            }
+        }
+    }
+    drawQuadrants()
+    for(let i = 0; i < allEntities.length; i++){
+        const entity = allEntities[i]
+        entity.draw()
     }
 };
 
 function changeTargets() {
-    for(let i = 0; i <entities.length; i++){
+    for(let i = 0; i < allEntities.length; i++){
+        const entity = allEntities[i]
         const posx = Math.random()*canvas.width - 10
         const posy = Math.random()*canvas.height - 10
-        entities[i].setTarget({x:posx,y:posy})
+        entity.setTarget({x: posx, y:posy})
+        entity.draw()
     }
 }
 
