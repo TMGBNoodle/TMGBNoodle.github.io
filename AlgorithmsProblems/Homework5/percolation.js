@@ -64,6 +64,8 @@ class UnionFind {
     connected(u, v) {
         let uRoot = this.find(u)
         let vRoot = this.find(v)
+        console.log(uRoot)
+        console.log(vRoot)
         return uRoot == vRoot
     }
 
@@ -158,17 +160,17 @@ class GridSquare {
     }
 }
 
-function checkPercolation(openTop, openBottom, union) {
-    openTop.forEach(u => {
-        openBottom.forEach(v => {
-            console.log("checking top vs bottom")
-            if(union.connected(u,v)) {
-                return true
-            }
-        })
-    });
-    return false
-}
+// function checkPercolation(openTop, openBottom, union) {
+//     openTop.forEach(u => {
+//         openBottom.forEach(v => {
+//             console.log("checking top vs bottom")
+//             if(union.connected(u,v)) {
+//                 return true
+//             }
+//         })
+//     });
+//     return false
+// }
 
 function getAdj(i, gridWidth, totalVert) {
     if((i - gridWidth) < 0) {
@@ -211,8 +213,14 @@ function main() {
 
     const grid = new Grid(gridWidth, gridHeight)
     grid.draw()
-    const unionFind = new UnionFind(vertexCount)
-    while(!checkPercolation(openTop, openBottom, unionFind)) {
+    const unionFind = new UnionFind(vertexCount + 2) //extra nodes 2500 and 2501 to make checking faster
+    for (let index = 0; index < gridWidth; index++) { //all nodes between 0 and 49 with gridwidth of 50
+        unionFind.union(index, 2500)
+    }
+    for (let index = vertexCount-1; index > vertexCount - 1 - gridWidth; index--) { //all nodes between 2499 and 2449 with gridwidth of 50
+        unionFind.union(index, 2501)
+    }
+    while(!unionFind.connected(2500, 2501)) {
         if(opened.length > vertexCount) { 
             break
         }
@@ -223,6 +231,7 @@ function main() {
         }
         if(newOpening < gridWidth) {
             openTop.push(newOpening)
+            unionFind.union()
         } else if (newOpening > vertexCount - gridWidth) {
             openBottom.push(newOpening)
         }
@@ -233,8 +242,8 @@ function main() {
         const adj = getAdj(newOpening, gridWidth, vertexCount)
         adj.forEach(ind => { //Constant time
             let otherVert = vertices[ind]
-            console.log(ind)
-            console.log(adj)
+            //console.log(ind)
+            //console.log(adj)
             if(otherVert.getState() == "open") {
                 otherVert.addConn(newOpen)
                 newOpen.addConn(otherVert)
@@ -243,11 +252,12 @@ function main() {
         });
         grid.draw()
         opened.push(newOpening)
-        console.log("New thing added")
+        //console.log("New thing added")
     }
+    console.log("finished")
 }
 
-//main()
+main()
 
 function unionFindTest() {
     let union = new UnionFind(50)
@@ -263,4 +273,4 @@ function unionFindTest() {
     console.log(union.find(49))
 }
 
-unionFindTest()
+// unionFindTest()
