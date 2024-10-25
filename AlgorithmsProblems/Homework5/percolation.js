@@ -177,7 +177,7 @@ function getAdj(i, gridWidth, totalVert) {
         } else {
             return [i+1, i-1, i+gridWidth]
         }
-    } else if((i + gridWidth) >  totalVert) {
+    } else if((i + gridWidth) > totalVert + 1) {
         if(i % gridWidth == 0) {
             return [i+1, i-gridWidth]
         } else if((i + 1) % gridWidth == 0) {
