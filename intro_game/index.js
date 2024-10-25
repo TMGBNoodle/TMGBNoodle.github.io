@@ -10,6 +10,27 @@ canvas.width = 1024;
 const entityCount = 50;
 const quadrantSize = 50;
 
+const entitySizeVariation = 15;
+const entitySizeBase = 25;
+
+const directions = {
+    "top" : -1,
+    "bottom" : 1,
+    "left" : -1,
+    "right" : 1,
+}
+
+const dirX = {
+    0 : "left",
+    2 : "right"
+}
+
+const dirY = {
+    0 : "top",
+    2 : "bottom"
+}
+
+
 class collisionGrid {
     constructor(squareSize, width, height, show = false, defaultColor = "yellow", occupiedColor = "green") {
         this.gridCount = 0
@@ -55,8 +76,11 @@ class collisionGrid {
             const quadrant = this.gridSquares[i];
             const quadBounds = quadrant.getBounds()
             // Negated Or statements to exit upon any single one being the case. If quad left > agent right, agent is definitely not in this quadrant. Other cases use same logic
-            if(!(quadBounds.left > agentBounds.right || quadBounds.right < agentBounds.left || quadBounds.top > agentBounds.bottom || quadBounds.bottom < agentBounds.top)) {
+            if(!(quadBounds["left"] > agentBounds["right"] || quadBounds["right"] < agentBounds["left"] || quadBounds.top > agentBounds.bottom || quadBounds.bottom < agentBounds.top)) {
+                // console.log(`Agent Id: ${agent.getId()}, Quad Id: ${quadrant.getId()}`)
                 this.addRecursion(i, agent)
+                agent.flagCorners()
+                break
             }
         }
     }
@@ -69,37 +93,45 @@ class collisionGrid {
         const quadBounds = quadrant.getBounds()
         let right = false
         let down = false
-        if(agentBounds.right > quadBounds.right) {
+        if(agentBounds["right"] > quadBounds["right"]) {
+            // console.log(`Agent Id: ${agent.getId()}, Quad Id: ${rootQuadrantID + 1}, agent right at ${agent.getBounds().right}, quadrant right at ${quadrant.getBounds().right}`)
             this.addRightQuadrants(rootQuadrantID + 1, agent)
             right = true
         }
         if(agentBounds.bottom > quadBounds.bottom) {
-            this.addLowerQuadrants(rootQuadrantID + 20, agent) 
+            // console.log(`Agent Id: ${agent.getId()}, Quad Id: ${rootQuadrantID + 20}, agent bottom at ${agent.getBounds().bottom}, quadrant bottom at ${quadrant.getBounds().bottom}`)
+            this.addLowerQuadrants(rootQuadrantID + this.lateralQuadrantCount, agent) 
             down = true
         }
         if(down && right) {
-            const nextId = rootQuadrantID + 21
-            this.addRecursion(nextId, agent)
+            const nextId = rootQuadrantID + this.lateralQuadrantCount+1
+            if(nextId < this.gridCount - 1){
+                 this.addRecursion(nextId, agent)
+            }
         }
     }
 
     addLowerQuadrants(quadrantID, agent) {
-        const lowerId = quadrantID + 20
-        const lowerQuadrant = this.gridSquares[lowerId]
-        lowerQuadrant.addAgent(agent)
-        agent.addQuadrant(lowerQuadrant)
-        if(agent.getBounds().bottom > lowerQuadrant.getBounds().bottom) {
-            this.addlowerQuadrants(lowerId + 20, agent)
+        if(quadrantID <= this.gridCount-1) {
+            const lowerQuadrant = this.gridSquares[quadrantID]
+            lowerQuadrant.addAgent(agent)
+            agent.addQuadrant(lowerQuadrant)
+            if(agent.getBounds().bottom > lowerQuadrant.getBounds().bottom) {
+                // console.log(`Agent Id: ${agent.getId()}, Quad Id: ${quadrantID}, agent bottom at ${agent.getBounds().bottom}, quadrant bottom at ${lowerQuadrant.getBounds().bottom}`)
+                this.addLowerQuadrants(quadrantID + this.lateralQuadrantCount, agent)
+            }
         }
     }
 
     addRightQuadrants(quadrantID, agent) {
-        const rightId = quadrantID + 1
-        const rightQuadrant = this.gridSquares[rightId]
-        rightQuadrant.addAgent(agent)
-        agent.addQuadrant(rightQuadrant)
-        if(agent.getBounds().right > rightQuadrant.getBounds().right) {
-            this.addRightQuadrants(rightId, agent)
+        if(quadrantID <= this.gridCount-1) {
+            const rightQuadrant = this.gridSquares[quadrantID]
+            rightQuadrant.addAgent(agent)
+            agent.addQuadrant(rightQuadrant)
+            if(agent.getBounds().right > rightQuadrant.getBounds().right) {
+                // console.log(`Agent Id: ${agent.getId()}, Quad Id: ${quadrantID}, agent right at ${agent.getBounds().right}, quadrant right at ${rightQuadrant.getBounds().right}`)
+                this.addRightQuadrants(quadrantID + 1, agent)
+            }
         }
     }
 }
@@ -109,14 +141,14 @@ class collisionGrid {
 //     o2L = quadrants.x1
 //     o2T = quadrants.y1
 //     o2B = quadrants.y2
-//     return !(o2L > o1B.right || o2R < o1B.left || o2T > o1B.bottom || o2B < o1B.top)
+//     return !(o2L > o1B.right || o2R < o1B["left"] || o2T > o1B.bottom || o2B < o1B.top)
 // }
 class collisionSquare {
     constructor(id, size, position, grid, show = false, defaultColor = "yellow", occupiedColor = "blue") {
         this.id = id
         this.size = size
         this.position = position
-        this.bounds = {top : this.position.y, bottom : this.position.y + this.size, left: this.position.x, right : this.position.x + this.size}
+        this.bounds = {"top" : this.position.y, "bottom" : this.position.y + this.size, "left": this.position.x, "right" : this.position.x + this.size}
         this.show = show
         this.defaultColor = defaultColor
         this.occupiedColor = occupiedColor
@@ -130,6 +162,14 @@ class collisionSquare {
 
     getBounds() {
         return this.bounds
+    }
+
+    getId() {
+        return this.id
+    }
+
+    setCorner(newColor) {
+        this.occupiedColor = newColor
     }
 
     draw() {
@@ -146,11 +186,11 @@ class collisionSquare {
         c.lineWidth = 0.8
 
         c.beginPath()
-        c.moveTo(this.bounds.left, this.bounds.top)
-        c.lineTo(this.bounds.right, this.bounds.top)
-        c.lineTo(this.bounds.right, this.bounds.bottom)
-        c.lineTo(this.bounds.left, this.bounds.bottom)
-        c.lineTo(this.bounds.left, this.bounds.top)
+        c.moveTo(this.bounds["left"], this.bounds.top)
+        c.lineTo(this.bounds["right"], this.bounds.top)
+        c.lineTo(this.bounds["right"], this.bounds.bottom)
+        c.lineTo(this.bounds["left"], this.bounds.bottom)
+        c.lineTo(this.bounds["left"], this.bounds.top)
         c.stroke()
         c.closePath()
     }
@@ -158,11 +198,12 @@ class collisionSquare {
 
 
 class creature {
-    constructor(position, type, color) {
+    constructor(position, type, color, id) {
+        this.id = id
         this.position = position
         this.type = type
         this.color = color
-        this.size = (Math.random() * 15) + 10
+        this.size = (Math.random() * entitySizeVariation) + entitySizeBase
         this.maxSize = this.size
         this.moveSpeed = 25 - this.size
         this.target = { x: this.position.x, y: this.position.y }
@@ -173,18 +214,63 @@ class creature {
         this.lastMoveX = 0
         this.lastMoveY = 0
         this.quadrants = []
+        // this.rightQuadrants = [] //I want to keep track of the edge quadrants so that I can easily check quadrants
+        // this.leftQuadrants = [] // in a direction when an object moves. I could use a set of quadrants with some conditionals
+        // this.topQuadrants = [] // to construct lists of edges. This requires a fair amount of maintenance, but it may also allow
+        // this.bottomQuadrants = [] // for easy changing of quadrant occupation.
+        this.corners = {"top_left": null, "top_right": null, "bottom_left": null, "bottom_right": null}
     }
 
     addQuadrant(newQuadrant) {
+        // console.log(`Quadrant : ${newQuadrant.getId()}, Agent: ${this.id}`)
+        for (const key in this.corners) {
+            if (Object.prototype.hasOwnProperty.call(this.corners, key)) {
+                const element = this.corners[key];
+                if(element == null) {
+                    this.corners[key] = newQuadrant
+                    newQuadrant.setCorner("blue")
+                } else {
+                    let names = key.split("_")
+                    let xName = names[1]
+                    let yName = names[0]
+                    let currBounds = element.getBounds()
+                    let newBounds = newQuadrant.getBounds()
+                    if(Math.sign(newBounds[yName] - currBounds[yName]) == directions[yName]) {
+                        this.corners[key] = newQuadrant
+                    }
+                    if(Math.sign(newBounds[xName] - currBounds[xName]) == directions[xName]) {
+                        this.corners[key] = newQuadrant
+                    }
+                }
+            }
+        }
         this.quadrants.push(newQuadrant)
     }
+
+    flagCorners() {
+        for (const key in this.corners) {
+            if (Object.prototype.hasOwnProperty.call(this.corners, key)) {
+                let element = this.corners[key]
+                element.setCorner("blue")
+            }
+        }
+    }
+
+    getId() {
+        return this.id
+    }
+
 
     getQuadrants() {
         return this.quadrants
     }
+
+
     getPosition() {
         return this.position
     }
+
+
     draw() {
         c.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
         switch (this.type) {
@@ -199,17 +285,19 @@ class creature {
             case "circle":
                 c.lineWidth = 0.8
                 c.beginPath()
-                c.moveTo(this.left, this.top)
+                c.moveTo(this["left"], this.top)
                 c.lineTo(this.right, this.top)
                 c.lineTo(this.right, this.bottom)
-                c.lineTo(this.left, this.bottom)
-                c.lineTo(this.left, this.top)
+                c.lineTo(this["left"], this.bottom)
+                c.lineTo(this["left"], this.top)
                 c.stroke()
                 c.closePath()
                 c.beginPath()
                 c.arc(this.position.x + this.size / 2, this.position.y + this.size / 2, this.size, 0, 2 * Math.PI)
                 c.fill()
                 c.closePath()
+                c.fillStyle = "black"
+                c.fillText(`${this.id}`, this.position.x + this.size/2, this.position.y + this.size/2);
         }
     }
     eat() {
@@ -251,23 +339,24 @@ class creature {
         //this.size -= totalMove
     }
 
-    moveWithCollisions(worldQuadrants, run) {
-        const difX = this.position.x - x
-        const difY = this.position.y - y
-        const QuadrantChecks = {}
-        for (let index = 0; index < this.quadrants.length; index++) {
-            const element = this.quadrants[index];
-            QuadrantChecks[element[0].id] = element
-        }
+    moveWithCollisions(run) {
+        const difX = this.target.x -this.position.x
+        const difY = this.target.y -this.position.y
+        const quadrantsToCheck = []
+        quadrantsToCheck.concat(this.quadrants)
+        const cornerKey = dirY[(Math.sign(difY) + 1)] + dirX[(Math.sign(difX) + 1)]
+        const corner = this.corners[cornerKey]
         const totalDif = Math.abs(difX) + Math.abs(difY)
         const xPer = difX / totalDif
         const yPer = difY / totalDif
         const xMove = this.moveSpeed * xPer
         const yMove = this.moveSpeed * yPer
-        const modifier = -1
+        const nextQuadrants = corner.getOtherQuadrants(corner, cornerKey, this.moveSpeed)
+        quadrantsToCheck.concat(nextQuadrants)
+        const modifier = 1
         //let totalMove = 0
         if (run) {
-            modifier = 1
+            modifier = -1
         }
         if (Math.abs(difX) > this.moveSpeed) {
             let toMove = xMove * modifier
@@ -294,7 +383,7 @@ class creature {
     }
 
     getBounds() {
-        return { top: this.top, bottom: this.bottom, left: this.left, right: this.right }
+        return { "top": this.top, "bottom": this.bottom, "left": this.left, "right": this.right }
     }
 
     // moveExhaustion(){
@@ -330,7 +419,7 @@ class creature {
 //     return !(o2L > o1B.right || o2R < o1B.left || o2T > o1B.bottom || o2B < o1B.top)
 // }
 
-const grid = new collisionGrid(50, canvas.width, canvas.height, true)
+const grid = new collisionGrid(30, canvas.width, canvas.height, true)
 grid.initQuadrants()
 grid.draw()
 
@@ -344,7 +433,7 @@ function generateCreatures(entityCount, type) {
         const r = Math.random() * 150
         const g = Math.random() * 150
         const b = Math.random() * 150
-        const newCreature = new creature({ x: posx, y: posy }, type, { r: r, g: g, b: b })
+        const newCreature = new creature({ x: posx, y: posy }, type, { r: r, g: g, b: b }, i)
         allEntities.push(newCreature)
         grid.addAgent(newCreature)
     }
@@ -354,7 +443,7 @@ function generateCreatures(entityCount, type) {
     }
 }
 
-generateCreatures(50, "circle")
+generateCreatures(10, "circle")
 grid.draw()
 for (let i = 0; i < allEntities.length; i++) {
     const entity = allEntities[i]
@@ -368,7 +457,7 @@ for (let i = 0; i < allEntities.length; i++) {
 // }
 
 function moveEntities() {
-    console.log("moving")
+    // console.log("moving")
     c.fillStyle = "white"
     c.fillRect(0, 0, canvas.width, canvas.height)
     clearQuadrants()
