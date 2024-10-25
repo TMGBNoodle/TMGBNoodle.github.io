@@ -49,6 +49,7 @@ class UnionFind {
     find(u) {
         let toChange = [u]
         let r = this.parents[u]
+        console.log("finding")
         while(this.parents[r] != r) {
             toChange.push(r)
             r = this.parents[r]
@@ -71,8 +72,9 @@ class UnionFind {
         let vRoot = this.find(v)
         if(this.heights[uRoot] > this.heights[vRoot]) {
             this.parents[vRoot] = uRoot
-            this.heights[uRoot] += this.heights[vRoot] + 1
         } else if(this.heights[uRoot] < this.heights[vRoot]) {
+            this.parents[uRoot] = vRoot
+        } else {
             this.parents[uRoot] = vRoot
             this.heights[vRoot] += 1
         }
@@ -177,7 +179,7 @@ function getAdj(i, gridWidth, totalVert) {
         } else {
             return [i+1, i-1, i+gridWidth]
         }
-    } else if((i + gridWidth) > totalVert + 1) {
+    } else if((i + gridWidth) > totalVert - 1) {
         if(i % gridWidth == 0) {
             return [i+1, i-gridWidth]
         } else if((i + 1) % gridWidth == 0) {
@@ -199,6 +201,7 @@ function main() {
     const openBottom = []
     const opened = []
     const vertexCount = gridHeight * gridWidth
+    console.log(vertexCount)
     const vertices = []
     for (let i = 0; i < gridHeight; i++) {
         for (let f = 0; f < gridWidth; f++) {
@@ -210,15 +213,13 @@ function main() {
     grid.draw()
     const unionFind = new UnionFind(vertexCount)
     while(!checkPercolation(openTop, openBottom, unionFind)) {
-        let newOpening = Math.round(Math.random() * vertexCount)
-        const lim = 10000
-        let count = 0
+        if(opened.length > vertexCount) { 
+            break
+        }
+        let newOpening = Math.round(Math.random() * (vertexCount - 1))
         while(opened.includes(newOpening)) {
+            console.log("regenerating")
             newOpening = Math.round(Math.random() * (vertexCount - 1))
-            count +=1
-            if(count > lim) {
-                break
-            }
         }
         if(newOpening < gridWidth) {
             openTop.push(newOpening)
@@ -246,4 +247,20 @@ function main() {
     }
 }
 
-main()
+//main()
+
+function unionFindTest() {
+    let union = new UnionFind(50)
+    console.log(union.find(1))
+    console.log(union.find(2))
+    union.union(1, 2)
+    console.log(union.find(1))
+    console.log(union.find(2))
+    for (let index = 0; index < 50; index++) {
+        union.union(1, index)
+        console.log(union.find(index))
+    }
+    console.log(union.find(49))
+}
+
+unionFindTest()
