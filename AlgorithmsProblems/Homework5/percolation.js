@@ -17,7 +17,7 @@
 
 //Oh. I can just. Make a vertex class. That stores all the connected stuff. I am silly.
 
-
+// Using a 'ghost node' allows me to speed up pathfinding and checking a lot.
 const canvas = document.querySelector('canvas');
 
 const widthInput = document.getElementById('widthbox')
@@ -25,9 +25,11 @@ const heightInput = document.getElementById('heightbox')
 const inputButton = document.getElementById('submit')
 
 inputButton.addEventListener("click", function() {
+    c.fillStyle = "white"
+    c.fillRect(0,0,canvas.width,canvas.height)
     gridWidth = parseInt(widthInput.value)
     gridHeight = parseInt(heightInput.value)
-    squareSize = canvas.width / gridWidth
+    squareSize = Math.min(canvas.width / gridWidth, squareSize)
     main()
 });
 
