@@ -20,6 +20,17 @@
 
 const canvas = document.querySelector('canvas');
 
+const widthInput = document.getElementById('widthbox')
+const heightInput = document.getElementById('heightbox')
+const inputButton = document.getElementById('submit')
+
+inputButton.addEventListener("click", function() {
+    gridWidth = parseInt(widthInput.value)
+    gridHeight = parseInt(heightInput.value)
+    squareSize = canvas.width / gridWidth
+    main()
+});
+
 const c = canvas.getContext("2d");
 canvas.height = 2048;
 canvas.width = 2048;
@@ -34,7 +45,7 @@ const colors = {
 }
 const gridX = 500
 const gridY = 500
-const squareSize = 25
+let squareSize = 25
 
 class UnionFind { 
     constructor(n) {
@@ -64,8 +75,8 @@ class UnionFind {
     connected(u, v) {
         let uRoot = this.find(u)
         let vRoot = this.find(v)
-        console.log(uRoot)
-        console.log(vRoot)
+        //console.log(uRoot)
+        //console.log(vRoot)
         return uRoot == vRoot
     }
 
@@ -218,7 +229,7 @@ function BFS(graph, node) {
     node.visit()
     Q.push(node)
     while(Q.length > 0) {
-        console.log("Test")
+        //console.log("Test")
         let i = Q.shift()
         let visited = i.getConnected()
         visited.forEach(element => {
@@ -227,7 +238,7 @@ function BFS(graph, node) {
                 element.setState("path")
                 Q.push(element)
                 parents[element.getId()] = i
-                console.log(i)
+                //console.log(i)
                 layer[element.getId()] = layer[i] + 1
             }
         });
@@ -240,7 +251,7 @@ function main() {
     const openBottom = []
     const opened = []
     const vertexCount = gridHeight * gridWidth
-    console.log(vertexCount)
+    //console.log(vertexCount)
     const vertices = []
     for (let i = 0; i < gridHeight; i++) {
         for (let f = 0; f < gridWidth; f++) {
@@ -254,22 +265,22 @@ function main() {
     grid.draw()
     const unionFind = new UnionFind(vertexCount + 2) //extra nodes 2500 and 2501 to make checking faster
     for (let index = 0; index < gridWidth; index++) { //all nodes between 0 and 49 with gridwidth of 50
-        unionFind.union(index, 2500)
-        vertices[index].addConn(vertices[2500])
-        vertices[2500].addConn(vertices[index])
+        unionFind.union(index, vertexCount)
+        vertices[index].addConn(vertices[vertexCount])
+        vertices[vertexCount].addConn(vertices[index])
     }
     for (let index = vertexCount-1; index > vertexCount - 1 - gridWidth; index--) { //all nodes between 2499 and 2449 with gridwidth of 50
-        unionFind.union(index, 2501)
-        vertices[index].addConn(vertices[2501])
-        vertices[2501].addConn(vertices[index])
+        unionFind.union(index, vertexCount+1)
+        vertices[index].addConn(vertices[vertexCount+1])
+        vertices[vertexCount+1].addConn(vertices[index])
     }
-    while(!unionFind.connected(2500, 2501)) {
+    while(!unionFind.connected(vertexCount, vertexCount+1)) {
         if(opened.length > vertexCount) { 
             break
         }
         let newOpening = Math.round(Math.random() * (vertexCount - 1))
         while(opened.includes(newOpening)) {
-            console.log("regenerating")
+            //console.log("regenerating")
             newOpening = Math.round(Math.random() * (vertexCount - 1))
         }
         if(newOpening < gridWidth) {
@@ -297,17 +308,17 @@ function main() {
         opened.push(newOpening)
         //console.log("New thing added")
     }
-    console.log("finished")
+    //console.log("finished")
     grid.draw()
-    let orderedGraph = BFS(vertices, vertices[2500])
+    let orderedGraph = BFS(vertices, vertices[vertexCount])
     let parents = orderedGraph[0]
     let layers = orderedGraph[1]
-    console.log("Parents: ")
+    //console.log("Parents: ")
     console.log(parents)
-    let vert = parents[2501]
+    let vert = parents[vertexCount + 1]
     grid.draw()
     grid.setSquareState(vert.getId(), "path")
-    while(parents[vert.getId()] != vertices[2500] && parents[vert.getId()] != vert){
+    while(parents[vert.getId()] != vertices[vertexCount] && parents[vert.getId()] != vert){
         vert = parents[vert.getId()]
         console.log(vert.getId())
         grid.setSquareState(vert.getId(), "path")
