@@ -10,11 +10,25 @@ class vertex {
         this.ind = ind
         this.binVal = binVal
         this.position = position
-        this.connected = new Array();
+        this.connected = []
         this.color = "black"
+        this.visited = false;
+        this.depth = 0
     }
     setVisited() {
+        this.visited = true
         this.color = "green"
+    }
+
+    setDepth(n) {
+        this.depth = n
+    }
+
+    getDepth() {
+        return this.depth
+    }
+    getVisited() {
+        return this.visited
     }
     addConnection(other) {
         this.connected.push(other)
@@ -59,9 +73,9 @@ vertex.prototype.toString = function vertToString() {
 }
 function compareBins(bin, obin) {
     if(obin.length > bin.length) {
-        bin.padStart(obin.length, "0")
+        bin = bin.padStart(obin.length, "0")
     } else {
-        obin.padStart(bin.length, "0")
+        obin = obin.padStart(bin.length, "0")
     }
     let fChar1 = bin[0]
     let fChar2 = obin[0]
@@ -79,7 +93,7 @@ function compareBins(bin, obin) {
     }
     
 }
-function generateGraph(n) {
+function generatePowerOf2Graph(n) {
     const vertexCount = Math.pow(2, n)
     const vertices = new Array()
     let colNum = 0
@@ -114,26 +128,37 @@ function generateGraph(n) {
     return vertices
 }
 
-function BFS(active, unvisited, total){
+function BFS(v, graph){
     let depth = 0
+    let depthArrays = {}
     let VCount = {}
-    let dormant = []
-    while(unvisited.length > 0){
-        depth += 1
-        for (let i = 0; i < active.length; i++) {
-            const element = active[i];
-            const connected = element.getConnected()
-            for(connect in connected){
-                active.push(connect)
-                let ind = unvisited.indexOf(connect)
-                unvisited.splice(ind, 1)
-            }
-        }
-    }
+    let Q = []
+    Q.push(v)
+    depthArrays[0] = [v]
+    while(Q.length > 0){
+        vert = Q.shift()
+        newDepth = vert.getDepth() + 1
+        connected = vert.getConnected()
+        connected.forEach(element => {
+            if(element.getVisited() == false){
 
+                if(depthArrays[newDepth] == null)
+                {
+                    depthArrays[newDepth] = [element]
+                } else {
+                    depthArrays[newDepth].push(element)
+                }
+                Q.push(element)
+                element.setVisited()
+                element.setDepth(newDepth)
+            }
+        });
+    }
+    return depthArrays
 }
 
 
-graph = generateGraph(10)
+graph = generatePowerOf2Graph(10)
 
-BFS(graph[0], graph.slice(1))
+layerStuff = BFS(graph[0], graph)
+console.log(layerStuff[6])

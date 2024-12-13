@@ -134,6 +134,24 @@ class collisionGrid {
             }
         }
     }
+
+    findNextQuadrants(corner, moveDist, agent) {
+        let yDir = corner.yDir
+        let xDir = corner.xDir
+        let cornerQuadrant = this.gridSquares[corner.id]
+        let cornerBounds  = cornerQuadrant.getBounds()
+        let agentBounds = agent.getBounds()
+        let yDif = Math.abs(agentBounds[yDir] - cornerBounds[yDir]); // difference between agent bound in the direction and corner bound in the direction
+        let xDif = Math.abs(agentBounds[xDir] - cornerBounds[xDir]); // y is Positive if direction is top, negative if direction is bottom
+        //x is positive if direction is left, negative if direction is right
+        //we want to get a positive number of squares to move, so get absolute value
+        if(moveDist > yDif) {
+            let yToAdd = 1
+        }
+        let quadrantsToAdd = Math.floor(moveDist/this.squareSize)
+        let size = agent.getSize()
+        //
+    }
 }
 // function checkQuadrantCollionsFromCreature(creature, quadrants) { Old collision check, used as reference for addAgent function
 //     o1B = creature.getBounds()
@@ -205,7 +223,7 @@ class creature {
         this.color = color
         this.size = (Math.random() * entitySizeVariation) + entitySizeBase
         this.maxSize = this.size
-        this.moveSpeed = 25 - this.size
+        this.moveSpeed = Math.abs(25 - this.size)
         this.target = { x: this.position.x, y: this.position.y }
         this.top = this.position.y - this.size / 2
         this.bottom = this.position.y + 1.5 * (this.size)
@@ -273,33 +291,33 @@ class creature {
 
     draw() {
         c.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
-        switch (this.type) {
-            case "square":
-                c.fillRect(this.position.x, this.position.y, this.size / 2, this.size / 2)
-                c.lineWidth = 0.8
-                c.beginPath()
-                c.moveTo(this.position.x + this.size, this.position.y + this.size)
-                c.lineTo(this.target.x, this.target.y)
-                c.stroke()
-                c.closePath()
-            case "circle":
-                c.lineWidth = 0.8
-                c.beginPath()
-                c.moveTo(this["left"], this.top)
-                c.lineTo(this.right, this.top)
-                c.lineTo(this.right, this.bottom)
-                c.lineTo(this["left"], this.bottom)
-                c.lineTo(this["left"], this.top)
-                c.stroke()
-                c.closePath()
-                c.beginPath()
-                c.arc(this.position.x + this.size / 2, this.position.y + this.size / 2, this.size, 0, 2 * Math.PI)
-                c.fill()
-                c.closePath()
-                c.fillStyle = "black"
-                c.fillText(`${this.id}`, this.position.x + this.size/2, this.position.y + this.size/2);
+        if(this.type == "square") {
+            c.fillRect(this.position.x, this.position.y, this.size / 2, this.size / 2)
+            c.lineWidth = 0.8
+            c.beginPath()
+            c.moveTo(this.position.x + this.size, this.position.y + this.size)
+            c.lineTo(this.target.x, this.target.y)
+            c.stroke()
+            c.closePath()
+        } else if(this.type == "circle") {
+            c.lineWidth = 0.8
+            c.beginPath()
+            c.moveTo(this["left"], this.top)
+            c.lineTo(this.right, this.top)
+            c.lineTo(this.right, this.bottom)
+            c.lineTo(this["left"], this.bottom)
+            c.lineTo(this["left"], this.top)
+            c.stroke()
+            c.closePath()
+            c.beginPath()
+            c.arc(this.position.x + this.size / 2, this.position.y + this.size / 2, this.size, 0, 2 * Math.PI)
+            c.fill()
+            c.closePath()
+            c.fillStyle = "black"
+            c.fillText(`${this.id}`, this.position.x + this.size/2, this.position.y + this.size/2);
         }
     }
+
     eat() {
         this.size += 1
     }
@@ -313,46 +331,9 @@ class creature {
         const totalDif = Math.abs(difX) + Math.abs(difY)
         const xPer = difX / totalDif
         const yPer = difY / totalDif
+        console.log(this.moveSpeed)
         const xMove = this.moveSpeed * xPer
         const yMove = this.moveSpeed * yPer
-        const modifier = -1
-        //let totalMove = 0
-        if (run) {
-            modifier = 1
-        }
-        if (Math.abs(difX) > this.moveSpeed) {
-            let toMove = xMove * modifier
-            this.position.x += toMove
-            this.lastMoveX = toMove
-            // totalMove += Math.abs(xMove)
-            this.left = this.position.x - this.size / 2
-            this.right = this.position.x + 1.5 * (this.size)
-        }
-        if (Math.abs(difY) > this.moveSpeed) {
-            let toMove = yMove * modifier
-            this.position.y += toMove
-            this.lastMoveY = toMove
-            // totalMove += Math.abs(yMove)
-            this.top = this.position.y - this.size / 2
-            this.bottom = this.position.y + 1.5 * (this.size)
-        }
-        //this.size -= totalMove
-    }
-
-    moveWithCollisions(run) {
-        const difX = this.target.x -this.position.x
-        const difY = this.target.y -this.position.y
-        const quadrantsToCheck = []
-        quadrantsToCheck.concat(this.quadrants)
-        const cornerKey = dirY[(Math.sign(difY) + 1)] + dirX[(Math.sign(difX) + 1)]
-        const corner = this.corners[cornerKey]
-        const totalDif = Math.abs(difX) + Math.abs(difY)
-        const xPer = difX / totalDif
-        const yPer = difY / totalDif
-        const xMove = this.moveSpeed * xPer
-        const yMove = this.moveSpeed * yPer
-        const nextQuadrants = corner.getOtherQuadrants(corner, cornerKey, this.moveSpeed)
-        quadrantsToCheck.concat(nextQuadrants)
         const modifier = 1
         //let totalMove = 0
         if (run) {
@@ -374,6 +355,47 @@ class creature {
             this.top = this.position.y - this.size / 2
             this.bottom = this.position.y + 1.5 * (this.size)
         }
+        //this.size -= totalMove
+    }
+
+    moveWithCollisions(run) {
+        const difX = this.target.x - this.position.x
+        const difY = this.target.y - this.position.y
+        const totalDif = Math.abs(difX) + Math.abs(difY)
+        if(totalDif <= 0) {
+            return
+        }
+        const quadrantsToCheck = []
+        quadrantsToCheck.concat(this.quadrants)
+        const cornerKey = dirY[(Math.sign(difY) + 1)] + dirX[(Math.sign(difX) + 1)]
+        const corner = this.corners[cornerKey]
+        const xPer = difX / totalDif
+        const yPer = difY / totalDif
+        const xMove = this.moveSpeed * xPer
+        const yMove = this.moveSpeed * yPer
+        const nextQuadrants = 
+        quadrantsToCheck.concat(nextQuadrants)
+        const modifier = 1
+        //let totalMove = 0
+        if (run) {
+            modifier = -1
+        }
+        let toMoveX = xMove * modifier
+        let xSign = Math.sign(toMoveX)
+        console.log(`${this.position.x} initial X`)
+        console.log(`${difX} difX`)
+        console.log(`${toMoveX} tomoveX`)
+        this.position.x = this.position.x + xSign * Math.min(Math.abs(toMoveX), Math.abs(difX)) // if moveX is greater than difX, just go difX, otherwise go movex
+        console.log(`${this.position.x} final X`)
+        this.left = this.position.x - this.size / 2
+        this.right = this.position.x + 1.5 * (this.size)
+        let toMoveY = yMove * modifier
+        console.log(`${this.position.y} initial y`)
+        let ySign = Math.sign(toMoveY)
+        this.position.y = this.position.y + ySign * Math.min(Math.abs(toMoveY), Math.abs(difY))
+        console.log(`${this.position.y} finaly`)
+        this.top = this.position.y - this.size / 2
+        this.bottom = this.position.y + 1.5 * (this.size)
     }
     moveToTarget(run) {
         this.move(this.target.x, this.target.y, run)
@@ -460,20 +482,19 @@ function moveEntities() {
     // console.log("moving")
     c.fillStyle = "white"
     c.fillRect(0, 0, canvas.width, canvas.height)
-    clearQuadrants()
     for (let i = 0; i < allEntities.length; i++) {
         const entity = allEntities[i]
-        entity.moveToTarget(false)
+        entity.moveWithCollisions(false)
     }
-    for (let i = 0; i < allEntities.length; i++) {
-        newCreature = allEntities[i]
-        for (let f = 0; f < entities.length; f++) {
-            let quadrant = entities[f]
-            if (checkQuadrantCollionsFromCreature(newCreature, quadrant[0])) {
-                quadrant[1].push(newCreature)
-            }
-        }
-    }
+    // for (let i = 0; i < allEntities.length; i++) {
+    //     newCreature = allEntities[i]
+    //     for (let f = 0; f < entities.length; f++) {
+    //         let quadrant = entities[f]
+    //         if (checkQuadrantCollionsFromCreature(newCreature, quadrant[0])) {
+    //             quadrant[1].push(newCreature)
+    //         }
+    //     }
+    // }
     for (let i = 0; i < allEntities.length; i++) {
         const entity = allEntities[i]
         entity.draw()
@@ -505,5 +526,5 @@ function checkCollisionCreature(o1, o2) {
 // timeButton.addEventListener("click", function () {
 //     moveEntities()
 // });
-// setInterval(moveEntities, 50)
-// setInterval(changeTargets, 5000)
+setInterval(moveEntities, 50)
+setInterval(changeTargets, 5000)
